@@ -7,7 +7,9 @@ from pathlib import Path
 from unittest.mock import patch
 from uuid import uuid4
 
-from app import HEALTH_SOURCES, app, bmi_guidance, history_chart, load_history, save_record
+from app import (
+    HEALTH_SOURCES, app, bmi_gauge, bmi_guidance, history_chart, load_history, save_record,
+)
 
 
 class BmiAppTests(unittest.TestCase):
@@ -125,6 +127,28 @@ class BmiAppTests(unittest.TestCase):
         self.assertIn("22.5", page)
         self.assertIn("健康體位", page)
         self.assertIn("維持均衡飲食", page)
+
+    def test_result_uses_accessible_semicircular_bmi_gauge(self):
+        response = self.calculate()
+        page = response.get_data(as_text=True)
+        self.assertIn('class="bmi-gauge" role="img" aria-label="BMI 22.5，健康體位"', page)
+        for tone in ("underweight", "healthy", "overweight", "obese"):
+            self.assertIn(f'class="gauge-arc {tone}"', page)
+        self.assertIn('class="gauge-needle"', page)
+        for value in ("18.5", "24", "27", "40"):
+            self.assertIn(f">{value}</text>", page)
+
+    def test_bmi_gauge_clamps_needle_to_scale_without_changing_ranges(self):
+        gauge = bmi_gauge(22.5)
+        self.assertEqual(len(gauge["arcs"]), 4)
+        self.assertEqual([arc["tone"] for arc in gauge["arcs"]], [
+            "underweight", "healthy", "overweight", "obese",
+        ])
+        self.assertNotEqual(gauge["needle_x"], bmi_gauge(30)["needle_x"])
+        self.assertEqual(bmi_gauge(0)["needle_x"], bmi_gauge(-1)["needle_x"])
+        self.assertEqual(
+            bmi_gauge(40)["needle_x"], bmi_gauge(100)["needle_x"],
+        )
 
     def test_health_tips_and_sources_for_each_category(self):
         for bmi, category in [
