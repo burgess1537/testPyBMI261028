@@ -64,6 +64,18 @@ button span { font-size: 20px; font-weight: 400; }
 .result-panel.high { background: #f5eddf; }
 .panel-kicker { position: relative; z-index: 1; color: #5f816d; }
 .result-main { position: relative; z-index: 1; display: flex; align-items: baseline; gap: 12px; margin-top: 35px; }
+.bmi-gauge { position: relative; width: 100%; margin-top: 18px; }
+.bmi-gauge svg { display: block; width: 100%; overflow: visible; }
+.bmi-gauge .result-main { position: absolute; top: 70%; left: 50%; justify-content: center; width: 100%; margin: 0; transform: translate(-50%, -50%); }
+.gauge-arc { fill: none; stroke-width: 18; stroke-linecap: round; }
+.gauge-arc.underweight { stroke: #8199ad; }
+.gauge-arc.healthy { stroke: #6fa477; }
+.gauge-arc.overweight { stroke: #d8a64d; }
+.gauge-arc.obese { stroke: #c86a51; }
+.gauge-tick { stroke: #567363; stroke-width: 2; }
+.gauge-label { fill: #607267; font-size: 11px; font-weight: 600; }
+.gauge-needle { stroke: #285a43; stroke-width: 4; stroke-linecap: round; }
+.gauge-hub { fill: #e27e4d; stroke: white; stroke-width: 3; }
 .result-number { font-size: clamp(70px, 8vw, 110px); font-weight: 700; line-height: 1.1; letter-spacing: -.085em; }
 .result-unit { color: #728a77; font-size: 13px; font-weight: 700; letter-spacing: .1em; }
 .result-divider { position: relative; z-index: 1; height: 1px; margin: 22px 0 25px; background: #b6cfb5; }

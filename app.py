@@ -27,6 +27,8 @@ HEALTH_SOURCES = (
     },
 )
 
+BMI_GAUGE_MAX = 40
+
 
 def bmi_guidance(bmi):
     if bmi < 18.5:
@@ -67,6 +69,55 @@ def bmi_guidance(bmi):
             {"title": "飲食方向", "text": "從均衡飲食與減少含糖飲料開始，優先選擇少加工的食物，並由醫師或營養師協助規劃個人化體重管理。"},
             {"title": "健康追蹤", "text": "建議諮詢醫療專業人員，評估腰圍、血壓、血糖及血脂等指標；不要只用 BMI 判斷健康狀況。"},
         ),
+    }
+
+
+def bmi_gauge(bmi):
+    center_x, center_y, radius = 200, 185, 145
+
+    def point(value, point_radius):
+        angle = math.pi * (1 - min(max(value, 0), BMI_GAUGE_MAX) / BMI_GAUGE_MAX)
+        return (
+            center_x + point_radius * math.cos(angle),
+            center_y - point_radius * math.sin(angle),
+        )
+
+    def arc(start, end):
+        start_x, start_y = point(start, radius)
+        end_x, end_y = point(end, radius)
+        return (
+            f"M {start_x:.2f} {start_y:.2f} "
+            f"A {radius} {radius} 0 0 0 {end_x:.2f} {end_y:.2f}"
+        )
+
+    ranges = (
+        (0, 18.5, "underweight"),
+        (18.5, 24, "healthy"),
+        (24, 27, "overweight"),
+        (27, BMI_GAUGE_MAX, "obese"),
+    )
+    ticks = []
+    for value in (0, 18.5, 24, 27, BMI_GAUGE_MAX):
+        inner_x, inner_y = point(value, 127)
+        outer_x, outer_y = point(value, 141)
+        label_x, label_y = point(value, 166)
+        ticks.append({
+            "value": value,
+            "inner_x": f"{inner_x:.2f}",
+            "inner_y": f"{inner_y:.2f}",
+            "outer_x": f"{outer_x:.2f}",
+            "outer_y": f"{outer_y:.2f}",
+            "label_x": f"{label_x:.2f}",
+            "label_y": f"{label_y + 4:.2f}",
+            "anchor": "start" if value == 0 else "end" if value == BMI_GAUGE_MAX else "middle",
+        })
+
+    needle_x, needle_y = point(bmi, 112)
+    return {
+        "arcs": [{"path": arc(start, end), "tone": tone} for start, end, tone in ranges],
+        "ticks": ticks,
+        "needle_x": f"{needle_x:.2f}",
+        "needle_y": f"{needle_y:.2f}",
     }
 
 
@@ -274,7 +325,11 @@ def index():
                     errors["weight"] = "無法使用這組數值計算 BMI，請檢查身高與體重。"
                 else:
                     displayed_bmi = round(bmi, 1)
-                    result = {"bmi": f"{displayed_bmi:.1f}", **bmi_guidance(displayed_bmi)}
+                    result = {
+                        "bmi": f"{displayed_bmi:.1f}",
+                        "gauge": bmi_gauge(displayed_bmi),
+                        **bmi_guidance(displayed_bmi),
+                    }
                     try:
                         load_history(name_input)
                         record = save_record(name_input, height, weight, displayed_bmi)
@@ -290,7 +345,11 @@ def index():
             name_input = record["name"]
             height_input = str(record["height_cm"])
             weight_input = str(record["weight_kg"])
-            result = {"bmi": f'{record["bmi"]:.1f}', **bmi_guidance(record["bmi"])}
+            result = {
+                "bmi": f'{record["bmi"]:.1f}',
+                "gauge": bmi_gauge(record["bmi"]),
+                **bmi_guidance(record["bmi"]),
+            }
             history = load_history(name_input)
         except FileNotFoundError:
             storage_error = "找不到這筆 BMI 紀錄。"

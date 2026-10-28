@@ -71,9 +71,22 @@
             {% if result %}
               <section class="result-panel {{ result.tone }}" aria-labelledby="result-title" aria-live="polite">
                 <span class="panel-kicker">YOUR RESULT / 計算結果</span>
-                <div class="result-main">
-                  <span class="result-number{% if result.label == '肥胖' %} bmi-obese{% endif %}">{{ result.bmi }}</span>
-                  <span class="result-unit">BMI</span>
+                <div class="bmi-gauge" role="img" aria-label="BMI {{ result.bmi }}，{{ result.label }}">
+                  <svg viewBox="0 0 400 220" aria-hidden="true" focusable="false">
+                    {% for arc in result.gauge.arcs %}
+                      <path class="gauge-arc {{ arc.tone }}" d="{{ arc.path }}"></path>
+                    {% endfor %}
+                    {% for tick in result.gauge.ticks %}
+                      <line class="gauge-tick" x1="{{ tick.inner_x }}" y1="{{ tick.inner_y }}" x2="{{ tick.outer_x }}" y2="{{ tick.outer_y }}"></line>
+                      <text class="gauge-label" x="{{ tick.label_x }}" y="{{ tick.label_y }}" text-anchor="{{ tick.anchor }}">{{ tick.value }}</text>
+                    {% endfor %}
+                    <line class="gauge-needle" x1="200" y1="185" x2="{{ result.gauge.needle_x }}" y2="{{ result.gauge.needle_y }}"></line>
+                    <circle class="gauge-hub" cx="200" cy="185" r="8"></circle>
+                  </svg>
+                  <div class="result-main">
+                    <span class="result-number{% if result.label == '肥胖' %} bmi-obese{% endif %}">{{ result.bmi }}</span>
+                    <span class="result-unit">BMI</span>
+                  </div>
                 </div>
                 <div class="result-divider"></div>
                 <span class="result-label">你的體位屬於 <strong>{{ result.label }}</strong></span>
